@@ -9,12 +9,14 @@ exact same line on every run, no network, no randomness, no input.
 import os
 import sys
 
+MAX_CHARS = 140
+
 LINE = "Out of office. My auto-reply is also out of office, so please email someone who actually works here."
 
 
 def main() -> int:
-    if not 1 <= len(LINE) <= 140:
-        print(f"entry is {len(LINE)} characters, must be 1-140", file=sys.stderr)
+    if not 1 <= len(LINE) <= MAX_CHARS:
+        print(f"entry is {len(LINE)} characters, must be 1-{MAX_CHARS}", file=sys.stderr)
         return 1
     if LINE != LINE.strip() or "\n" in LINE:
         print("entry must be a single clean line", file=sys.stderr)
@@ -25,10 +27,16 @@ def main() -> int:
     with open(path, "w", encoding="utf-8", newline="") as f:
         f.write(LINE)
     with open(path, "r", encoding="utf-8") as f:
-        if f.read() != LINE:
-            print("verification failed: entry.txt differs", file=sys.stderr)
-            return 1
+        written = f.read()
+    if written != LINE:
+        print("verification failed: entry.txt differs", file=sys.stderr)
+        return 1
+    # The gate counts characters the same way: exact file content.
+    if len(written) != len(LINE) or written.count("\n") != 0:
+        print("verification failed: entry.txt is not one clean line", file=sys.stderr)
+        return 1
     print(f"wrote {len(LINE)} characters to {path}")
+    print(LINE)
     return 0
 
 
